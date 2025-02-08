@@ -34,8 +34,7 @@
 
 *********************************** PASTE THIS COMMAND ******************************************
 
-4.INCIDENT RESPONSE
-POSSIBLE RDP BRUTE-FORCE ATTACKS
+4.DETECTING RDP BRUTE-FORCE ATTACKS
 
 Go to Windows server - Settings - Remote Desktop - Enable Remote Desktop
 Go to Wazuh agent of windows sever - Click view - select view config
