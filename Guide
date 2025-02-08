@@ -1,0 +1,93 @@
+1. ENABLING FILE INTEGRITY MONITORING FOR DIRECTORIES
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<directories realtime="yes" check_all="yes" report_changes="yes" recursion_level="10">c:\Users\Administrator\Downloads </directories>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+2.Integrating viruts total to detect malwares
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<integration>
+    <name>virustotal</name>
+    <api_key>YOUR_API_KEY</api_key> <!-- Replace with your VirusTotal API key -->
+    <group>syscheck</group>
+    <alert_format>json</alert_format>
+  </integration>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+@@@ MALWARE SITE -  ( https://www.eicar.org/download-anti-malware-testfile/ )
+
+3.INTEGRATING WINDOWS DEFENDER LOGS
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<agent_config>
+<localfile>
+	<location>Microsoft-Windows-Windows Defender/Operational</location>
+	<log_format>eventchannel</log_format>
+</localfile>
+</agent_config>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+4.INCIDENT RESPONSE
+POSSIBLE RDP BRUTE-FORCE ATTACKS
+
+Go to Windows server - Settings - Remote Desktop - Enable Remote Desktop
+Go to Wazuh agent of windows sever - Click view - select view config
+PASTE THIS UNDER " Active Response " :
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<command>
+    <name>netsh</name>
+    <executable>netsh.exe</executable>
+    <timeout_allowed>yes</timeout_allowed>
+ </command>
+
+ <active-response>
+    <disabled>no</disabled>
+    <command>netsh</command>
+    <location>local</location>
+    <rules_id>100100</rules_id>
+ </active-response>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+THEN SAVE - MANAGE - SELECT RESTART
+
+Go to Wazuh server GUI -  Server Management > Rules > Custom Rules > local_rules.xml
+PASTE THIS COMMAND TO LINE 21:
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<group name="rdp">
+    <rule id="100100" level="10" frequency="3" timeframe="120">
+    <if_matched_sid>60122</if_matched_sid>
+    <description>Possible RDP attack: 3 failed logins in a short period of time</description>
+    </rule>
+</group>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+Go to Wazuh server GUI - Server Management > Settings > Edit Configuration.
+PASTE THIS COMMAND TO LINE - HIGLIGHT 240-244:
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<active-response>
+  <disabled>no</disabled>
+   <command>firewall-drop</command>
+   <location>local</location>
+   <rules_id>5710</rules_id>
+   <timeout>60</timeout>
+</active-response>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+
+
