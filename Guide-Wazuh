@@ -1,0 +1,229 @@
+What is SIEM?
+SIEM stands for Security Information and Event Management. It’s like a smart security system for a company’s computers and networks.
+
+Imagine a big room with lots of computers and devices. Every device (like your laptop, printer, or server) sends out signals or messages about what’s happening—like when someone logs in, opens a file, or tries to connect to the internet.
+
+What Does SIEM Do?
+Collects Information: SIEM gathers all these messages (also called "logs") from different devices in one place.
+Monitors for Problems: It watches these logs to look for anything unusual or suspicious, like someone trying to hack into the system or accessing something they shouldn't.
+Sends Alerts: If SIEM finds something bad, it sends an alert to the security team, letting them know what’s happening so they can fix it.
+Helps Investigate: SIEM keeps a record of all the logs. So, if a company thinks something bad happened, they can look back and see exactly what occurred.
+Why Is SIEM Important?
+It’s like having a security guard that watches over all the computers and networks 24/7, making sure everything is safe. And if something goes wrong, the guard sounds the alarm right away!
+
+Example:
+Without SIEM: A company might have trouble knowing if someone is trying to hack them because all their devices are sending logs separately.
+With SIEM: All the information comes together in one place, making it easier to spot problems quickly.
+In Summary:
+SIEM helps organizations stay safe by collecting, monitoring, and analyzing all security-related activities across their computers and networks in real-time. It keeps an eye out for bad guys trying to break in!
+
+*Splunk
+*IBM QRadar
+*ArcSight (by Micro Focus)
+*AlienVault (now AT&T Cybersecurity)
+*LogRhythm
+*Securonix
+*Elastic SIEM
+*McAfee Enterprise Security Manager (ESM)
+*Graylog
+*OSSIM (Open Source Security Information Management)
+
+**********************************************************************************************************************************************************************************************************************
+
+1. DOWNLOAD THE wazuh server and wazuh agent
+
+2. OPEN VMWARE deploy windows server 2022 and Wazuh server
+
+3. Install Vmware tools to Windows server 2022
+
+4. After installing the vmware tools to win server 2022 - drag the wazuh agent to windows server 2022 virtual then install
+
+5. Login to your wazuh-server
+un: wazuh-user
+pass: wazuh
+
+Type: ip addr
+
+to get the ip address and open any browser (https://0.0.0.0)
+ 
+GUI login
+un: admin
+pass: admin
+
+6. Deploy agent 
+Go to Server managemnet -> Endpoints Summary -> Click "Deploy New Agent"
+
+SELECT WINDOWS
+Server address: IP of windows server
+Agent name: Agent1
+
+COPY THE COMMANDS TO STEP 4: Run the following commands to download and install the agent:
+PASTE it to windows server in CMD (powershell)
+
+DO the same to STEP 5:Copy and paste the script to windows server cmd powershell
+
+OPEN wazuh agent type the ip address of Wazuh server then click save  
+Go to manage (CLICK start) then refresh 
+
+7.Go back to wazuh server gui Click "close"
+
+*****Be sure to disable Real-time Protection and Firewall on Windows Defender and any security option that may block suspicious files on your browser of choice for the testing purposes!*****
+
+8. ENABLING FILE INTEGRITY MONITORING FOR DIRECTORIES
+
+File Integrity Monitoring (FIM) is a security process that checks and monitors files and directories on a system for changes, such as modifications, deletions, or additions. The goal of FIM is to detect unauthorized or suspicious activity that might indicate a security breach or malicious behavior.
+
+How FIM Works:
+Baseline Creation: FIM first creates a snapshot (baseline) of important files' current state. This includes file attributes like size, permissions, hashes (such as SHA or MD5), and more.
+
+Ongoing Monitoring: After the baseline is set, the system continuously monitors these files and compares their current state to the baseline.
+
+Alerting on Changes: If any unauthorized or unexpected changes are detected—such as someone modifying a file or deleting it—FIM generates an alert to notify administrators.
+
+Common Use Cases:
+Monitoring system and configuration files.
+Detecting malware infections or file tampering.
+Ensuring compliance with security regulations.
+In summary, FIM helps to ensure that critical files remain unchanged unless authorized, providing a safeguard against cyberattacks or accidental damage.
+
+9. Go to Windows server - open agent - click view - view config 
+PASTE THIS COMMAND/SCRIPT: UNDER " \SysNative</directories> "
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<directories realtime="yes" check_all="yes" report_changes="yes" recursion_level="10">c:\Users\Administrator\Downloads </directories>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+THEN RESTART THE WAZUH AGENT 
+
+TRY TO CREATE FILES IN DOWNLOADS:
+
+GO TO WAZUH SERVER GUI - Endpoint Security - File Interity Monitoring - Change the date to TODAY
+
+10. Integrating viruts total to detect malwares
+
+Go to www.virustotal.com ( Create account or Login )
+Click Profile - API KEY - Copy the API key 
+
+Go to Wazuh server
+Server Management - Settings - Edit Configuration
+PASTE THIS TO LINE 82
+*********************************** PASTE THIS COMMAND ******************************************
+
+<integration>
+    <name>virustotal</name>
+    <api_key>YOUR_API_KEY</api_key> <!-- Replace with your VirusTotal API key -->
+    <group>syscheck</group>
+    <alert_format>json</alert_format>
+  </integration>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+AND PASTE YOUR API KEY THEN SAVE AND RESTART YOUR WAZUH MANAGER
+
+OPEN THIS LINK TO YOUR WINDOWS SERVER ( https://www.eicar.org/download-anti-malware-testfile/ )
+DOWNLOAD SOME MALWARE FOR LABS ONLY
+
+THEN GO TO WAZUH GUI - THREAT INTELLIGENCE - THREAT HUNTING
+
+11. INTEGRATING WINDOWS DEFENDER LOGS
+Integrating Windows Defender logs in Wazuh allows you to centrally monitor, analyze, and respond to security events detected by Windows Defender across multiple systems.
+
+Go to wazuh sever GUI
+
+Serve management - Endpoint Groups - Click " Add new Groups " name it " windows" then save groups
+
+Click the "windows" groups that you created - Click " Manage Agents" add the Window server endpoint
+
+Go to FILES tab katabi ng Agent tab under windows groups - Click Edit sign of  "Agent.conf"
+PASTE THIS COMMAND:
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<agent_config>
+<localfile>
+	<location>Microsoft-Windows-Windows Defender/Operational</location>
+	<log_format>eventchannel</log_format>
+</localfile>
+</agent_config>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+THEN CLICK SAVE
+
+Go to Windows server open the Wazuh agent - Manage - Click Restart
+
+Turn on the Windows Defender Real time Protection - Try to Download Malware from " https://www.eicar.org/download-anti-malware-testfile/ "
+It should be reporting to Wazuh server gui - ( Threat Intillegence -  Threat hunting - Change the date " Today" )
+
+12. DETECTING POSSIBLE RDP BRUTE-FORCE ATTACKS
+This includes monitoring for repeated login failures, setting alerts for unusual RDP activity. 
+
+Go to Windows server - Settings - Remote Desktop - Enable Remote Desktop
+Go to Wazuh agent of windows server - Click view - select view config
+PASTE THIS UNDER " Active Response " :
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<command>
+    <name>netsh</name>
+    <executable>netsh.exe</executable>
+    <timeout_allowed>yes</timeout_allowed>
+ </command>
+
+ <active-response>
+    <disabled>no</disabled>
+    <command>netsh</command>
+    <location>local</location>
+    <rules_id>100100</rules_id>
+ </active-response>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+THEN SAVE - MANAGE - SELECT RESTART
+
+Go to Wazuh server GUI -  Server Management > Rules > Custom Rules > local_rules.xml
+PASTE THIS COMMAND TO LINE 21:
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<group name="rdp">
+    <rule id="100100" level="10" frequency="3" timeframe="120">
+    <if_matched_sid>60122</if_matched_sid>
+    <description>Possible RDP attack: 3 failed logins in a short period of time</description>
+    </rule>
+</group>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+CLICK SAVE AND RESTART
+
+Go to Wazuh server GUI - Server Management > Settings > Edit Configuration.
+PASTE THIS COMMAND TO LINE - HIGLIGHT 240-244:
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+<active-response>
+  <disabled>no</disabled>
+   <command>firewall-drop</command>
+   <location>local</location>
+   <rules_id>5710</rules_id>
+   <timeout>60</timeout>
+</active-response>
+
+*********************************** PASTE THIS COMMAND ******************************************
+
+CLICK SAVE THEN RESTART
+
+TO TEST THE SIMULATION LAB OPEN VIRUTAL KALI LINUX OPEN TERMINAL
+Open terminal : 
+cd /usr/share/wordlists
+
+hydra -l administrator -P rockyou.txt TARGET_IP_ADDRESS rdp
+
+Go to Wazuh server gui to see the logs - threat intillegence - threat hunting
+
+
+**********************************************************************************************************************************************************************************************************************
+https://drive.google.com/drive/u/1/folders/1-b9a0WzKXwc_-k970MOvpI26nlr0tk9b
